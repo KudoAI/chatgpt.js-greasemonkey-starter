@@ -1,1 +1,1 @@
-# chatgptjs-tampermonkey-starter
+# chatgpt.js-greasemonkey-test

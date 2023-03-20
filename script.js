@@ -5,6 +5,7 @@
 // @description A template for a chatgpt userscript use chatgptjs
 // @author chatgptjs
 // @match https://chat.openai.com/*
+// @icon https://www.google.com/s2/favicons?sz=64&domain=openai.com
 // @grant none
 // @license MIT
 // ==/UserScript==

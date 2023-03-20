@@ -1,63 +1,163 @@
 // ==UserScript==
-// @name chatgpt-hello
-// @namespace https://chatgptjs.org
-// @version 0.0.1
-// @description A template for a chatgpt userscript use chatgptjs
-// @author chatgptjs
-// @match https://chat.openai.com/*
-// @icon https://www.google.com/s2/favicons?sz=64&domain=openai.com
-// @grant none
-// @license MIT
+// @name         chatgpt.js test
+// @namespace    https://chatgptjs.org
+// @version      2023.03.20
+// @description  A template for testing latest chatgpt.js compatibility w/userscripts w/o using @require
+// @author       chatgpt.js
+// @match        https://chat.openai.com/*
+// @icon         https://www.google.com/s2/favicons?sz=64&domain=openai.com
+// @grant        none
+// @license      MIT
 // ==/UserScript==
 
-(function() {
-'use strict';
-    initialize();
-})();
-
-async function initialize() {
-    while(!window.chatgpt) {await new Promise(r => setTimeout(r, 1000));}
-    chatgpt.send("hello!");
-}
+// Import chatgpt.js
 
 (function() {
 
-    /*
-     *  The code in this function was adapted from the chatgptjs/chatgpt.js library, authored by Adam Lui and 冯不游
-     *  (https://chatgptjs.org) and licensed under the MIT License.
-    */
+    var functionAliases = [ // whole function names to cross-alias
+        ['new', 'newChat', 'startNewChat'],
+        ['regenerate', 'regenerateReply'],
+        ['send', 'sendChat', 'sendMsg'],
+        ['sendInNewChat', 'sendNewChat'],
+        ['showAllFunctions', 'printAllFunctions'],
+        ['stop', 'stopGenerating'],
+        ['toggleScheme', 'toggleMode']
+    ];
+
+    var synonyms = [ // constituent synonyms within function names
+        ['activate', 'turnOn'],
+        ['chat', 'conversation', 'convo'],
+        ['generating', 'generation'],
+        ['reply', 'response'],
+        ['send', 'submit']
+    ];
+
+    var targetTypes = [ // for abstracted methods like get, insert
+        'button', 'link', 'div', 'response'
+    ];
+
+    var navLinkLabels = {
+        clearChats: 'Clear conversations',
+        confirmClearChats: 'Confirm clear conversations',
+        newChat: 'New chat'
+    };
 
     var chatgpt = {
 
-        clearChats: function() {
-            var clearLabels = ['Clear conversations', 'Confirm clear conversations'];
-            if (!this.clearChats.cnt) this.clearChats.cnt = 0;
-            if (this.clearChats.cnt >= clearLabels.length) return; // exit if already confirmed
+        activateDarkMode: function() {
             for (var navLink of document.querySelectorAll('nav > a')) {
-                if (navLink.text.includes(clearLabels[this.clearChats.cnt])) {
+                if (navLink.text.toLowerCase().includes('dark mode')) {
+                    navLink.click(); return;
+        }}},
+
+        activateLightMode: function() {
+            for (var navLink of document.querySelectorAll('nav > a')) {
+                if (navLink.text.toLowerCase().includes('light mode')) {
+                    navLink.click(); return;
+        }}},
+
+        clearChats: function() {
+            if (!this.clearChats.cnt) this.clearChats.cnt = 0;
+            if (this.clearChats.cnt >= 2) return; // exit if already confirmed
+            for (var navLink of document.querySelectorAll('nav > a')) {
+                if (navLink.text.includes(navLinkLabels[(
+                        this.clearChats.cnt > 0 ? 'confirmC' : 'c') + 'learChats'])) {
                     navLink.click(); this.clearChats.cnt++;
                     setTimeout(this.clearChats.bind(this), 500); return; // repeat to confirm
-                }
+        }}},
+
+        get: function(targetType, targetName = '') {
+
+            // Validate argument types to be string only
+            if (typeof targetType !== 'string' || typeof targetName !== 'string') {
+                throw new TypeError('Invalid arguments. Both arguments must be strings.'); }
+
+            // Validate targetType
+            if (!targetTypes.includes(targetType.toLowerCase())) {
+                throw new Error('Invalid targetType: ' + targetType
+                    + '. Valid values are: ' + JSON.stringify(targetTypes)); }
+
+            // Validate targetName scoped to pre-validated targetType
+            var targetNames = [], reTargetName = new RegExp('^get(.*)' + targetType + '$', 'i');
+            for (var prop in this) {
+                if (typeof this[prop] === 'function' && prop.match(reTargetName)) {
+                    targetNames.push( // add found targetName to valid array
+                        prop.replace(reTargetName, '$1').toLowerCase());
+            }}
+            if (!targetNames.includes(targetName.toLowerCase())) {
+                throw new Error('Invalid targetName: ' + targetName + '. '
+                    + (targetNames.length > 0 ? 'Valid values are: ' + JSON.stringify(targetNames)
+                        : 'targetType ' + targetType.toLowerCase() + ' does not require additional options.'));
             }
+
+            // Call target function using pre-validated name components
+            var targetFuncNameLower = ('get' + targetName + targetType).toLowerCase();
+            var targetFuncName = Object.keys(this).find( // find originally cased target function name
+                function(name) { return name.toLowerCase() === targetFuncNameLower; }); // test for match
+            return this[targetFuncName](); // call found function
         },
 
         getChatInput: function() {
             return document.querySelector('form textarea').value;
         },
 
-        getNewChatButton: function() {
-            for (var navLink of document.querySelectorAll('nav > a')) {
-                if (navLink.text.includes('New chat')) {
-                    return navLink;
-                }
-            }
+        getLastResponse: function() {
+            var responseDivs = document.querySelectorAll('main div[class*=group]');
+            if (responseDivs.length < 2) return ''; // if no responses, return empty string
+            return responseDivs[responseDivs.length - 1].textContent;
         },
 
+        getLastResponseDiv: function() {
+            var responseDivs = document.querySelectorAll('main div[class*=group]');
+            return responseDivs[responseDivs.length - 1];
+        },
+
+        getNewChatLink: function() {
+            for (var navLink of document.querySelectorAll('nav > a')) {
+                if (navLink.text.includes(navLinkLabels.newChat)) {
+                    return navLink;
+        }}},
+
         getRegenerateButton: function() {
-            var form = document.querySelector('form');
-            var buttons = form.querySelectorAll('button');
-            var result = Array.from(buttons).find(button => button.textContent.trim().toLowerCase().includes('regenerate'));
-            return result;
+            for (var formButton of document.querySelectorAll('form button')) {
+                if (formButton.textContent.toLowerCase().includes('regenerate')) {
+                    return formButton;
+        }}},
+
+        getResponse: function(pos) {
+            var responseDivSelector = 'main div[class*=group]';
+            var strPos = pos.toString().toLowerCase();
+            if (/last|final/.test(strPos)) { // get last response
+                var responseDivs = document.querySelectorAll(responseDivSelector);
+                if (responseDivs.length < 2) return ''; // if no responses, return empty string
+                return responseDivs[responseDivs.length - 1].textContent;
+            } else { // get nth response
+                var nthOfResponse = (
+
+                    // Calculate base number
+                    Number.isInteger(pos) ? pos : // do nothing for integers
+                    strPos.match(/^\d+/) ? strPos.match(/^\d+/)[0] : // extract first digits for strings w/ them
+                    ( // convert wods to integers for digitless strings
+                        /^(1|one|fir)(st)?$/.test(strPos) ? 1
+                        : /^(2|tw(o|en|el(ve|f))|seco)(nd|t[yi])?(e?th)?$/.test(strPos) ? 2
+                        : /^(3|th(ree|ir?))(rd|teen|t[yi])?(e?th)?$/.test(strPos) ? 3
+                        : /^(4|fou?r)(teen|t[yi])?(e?th)?$/.test(strPos) ? 4
+                        : /^(5|fi(ve|f))(teen|t[yi])?(e?th)?$/.test(strPos) ? 5
+                        : /^(6|six)(teen|t[yi])?(e?th)?$/.test(strPos) ? 6
+                        : /^(7|seven)(teen|t[yi])?(e?th)?$/.test(strPos) ? 7
+                        : /^(8|eight?)(teen|t[yi])?(e?th)?$/.test(strPos) ? 8
+                        : /^(9|nine?)(teen|t[yi])?(e?th)?$/.test(strPos) ? 9
+                        : /^(10|ten)(e?th)?$/.test(strPos) ? 10 : 1 )
+
+                    // Transform base number if suffixed
+                    * ( /ty|ieth$/.test(strPos) ? 10 : 1 ) // x 10 if -ty/ieth
+                    + ( /teen(th)?$/.test(strPos) ? 10 : 0 ) // + 10 if -teen/teenth
+
+                ) * 2; // factor for own msg's
+
+                var responseDiv = document.querySelector(`${responseDivSelector}:nth-of-type(${nthOfResponse})`);
+                return responseDiv ? responseDiv.textContent : '';
+            }
         },
 
         getSendButton: function() {
@@ -65,57 +165,13 @@ async function initialize() {
         },
 
         getStopGeneratingButton: function() {
-            var form = document.querySelector('form');
-            var buttons = form.querySelectorAll('button');
-            return Array.from(buttons).find(button => button.textContent.trim().toLowerCase().includes('stop generating'));
-        },
+            for (var formButton of document.querySelectorAll('form button')) {
+                if (formButton.textContent.toLowerCase().includes('stop')) {
+                    return formButton;
+        }}},
 
         getTextarea: function() {
-            var form = document.querySelector('form');
-            var textareas = form.querySelectorAll('textarea');
-            var result = textareas[0];
-            return result;
-        },
-
-        getLastResponseElement: function() {
-            var responseElements = document.querySelectorAll('.group.w-full');
-            return responseElements[responseElements.length - 1];
-        },
-
-        getLastResponse: function() {
-            var lastResponseElement = this.getLastResponseElement();
-            if (!lastResponseElement) return;
-            var lastResponse = lastResponseElement.textContent;
-            return lastResponse;
-        },
-
-        send: function(msg) {
-            var textarea = this.getTextarea();
-            textarea.value = msg;
-            var sendButton = this.getSendButton();
-            sendButton && sendButton.click();
-        },
-
-        stop: function() {
-            var stopGeneratingButton = this.getStopGeneratingButton();
-            stopGeneratingButton && stopGeneratingButton.click();
-        },
-
-        regenerate: function() {
-            var regenerateButton = this.getRegenerateButton();
-            regenerateButton && regenerateButton.click();
-        },
-
-        new: function() {
-            var newChatButton = this.getNewChatButton();
-            newChatButton && newChatButton.click();
-        },
-
-        sendInNewChat: function(msg) {
-            this.new();
-            setTimeout(() => {
-                this.send(msg);
-            }, 500);
+            return document.querySelector('form textarea');
         },
 
         notify: function(msg, position = '') {
@@ -158,18 +214,77 @@ async function initialize() {
             }, hideDelay * 1000); // ...after pre-set duration
         },
 
-        startNewChat: function() {
-            for (var link of document.getElementsByTagName('a')) {
-                if (link.text.includes('New chat')) {
-                    link.click(); break;
-                }
+        printAllFunctions: function() {
+            var functionNames = [];
+            for (var prop in this) {
+                if (typeof this[prop] === 'function') {
+                    functionNames.push(prop);
+            }}
+            functionNames.sort(); // alphabetize functions
+            for (var functionName of functionNames) {
+                console.log(functionName + ': ['
+                    + ( functionName === this[functionName].name ? 'Function' : 'Alias of' )
+                    + ': ' + this[functionName].name + ']' );
             }
         },
+
+        regenerate: function() {
+            for (var formButton of document.querySelectorAll('form button')) {
+                if (formButton.textContent.toLowerCase().includes('regenerate')) {
+                    formButton.click; return;
+        }}},
+
+        scrollToBottom: function() {
+            document.querySelector('button[class*="cursor"]');
+        },
+
+        send: function(msg) {
+            document.querySelector('form textarea').value = msg;
+            document.querySelector('form button[class*="bottom"]').click();
+        },
+
+        sendInNewChat: function(msg) {
+            for (var navLink of document.querySelectorAll('nav > a')) {
+                if (navLink.text.includes(navLinkLabels.newChat)) {
+                    navLink.click(); break;
+            }}
+            setTimeout(function() {
+                document.querySelector('form textarea').value = msg;
+                document.querySelector('form button[class*="bottom"]').click();
+            }, 500);
+        },
+
+        startNewChat: function() {
+            for (var navLink of document.querySelectorAll('nav > a')) {
+                if (navLink.text.includes(navLinkLabels.newChat)) {
+                    navLink.click(); return;
+        }}},
+
+        stop: function() {
+            for (var formButton of document.querySelectorAll('form button')) {
+                if (formButton.textContent.toLowerCase().includes('stop')) {
+                    formButton.click(); return;
+        }}},
+
+        toggleScheme: function() {
+            for (var navLink of document.querySelectorAll('nav > a')) {
+                if (navLink.text.toLowerCase().includes('mode')) {
+                    navLink.click(); return;
+        }}},
 
         isIdle: true,
         isGenerating: false,
         status: 'idle',
         prevStatus: 'idle',
+
+        toggleStatus: function() {
+            this.prevStatus = this.status;
+            if (this.status === 'idle') {
+                this.eventEmitter.emit('onIdle');
+            } else if (this.status === 'generating') {
+                this.eventEmitter.emit('onGenerating');
+            }
+        },
 
         updateStatus: function() {
             var stopGeneratingButton = this.getStopGeneratingButton();
@@ -185,15 +300,6 @@ async function initialize() {
             }
             if (this.status !== this.prevStatus) {
                 this.toggleStatus();
-            }
-        },
-
-        toggleStatus: function() {
-            this.prevStatus = this.status;
-            if (this.status === 'idle') {
-                this.eventEmitter.emit('onIdle');
-            } else if (this.status === 'generating') {
-                this.eventEmitter.emit('onGenerating');
             }
         },
 
@@ -235,52 +341,67 @@ async function initialize() {
         }
     };
 
+    // Create chatgpt.[actions]Button(identifier) functions
+    var buttonActions = ['click', 'get'];
+    for (var buttonAction of buttonActions) {
+        chatgpt[buttonAction + 'Button'] = function handleButton(buttonIdentifier) {
+            var button = buttonIdentifier.match(
+                /^[.#]/) ? document.querySelector(buttonIdentifier) // get via class or id selector
+                : /send/i.test(buttonIdentifier) ? document.querySelector('form button[class*="bottom"]')
+                : /scroll/i.test(buttonIdentifier) ? document.querySelector('button[class*="cursor"]')
+                : (function() { // get via text content
+                    for (var button of document.querySelectorAll('button')) { // try buttons
+                        if (button.textContent.toLowerCase().includes(buttonIdentifier.toLowerCase())) {
+                            return button; }}
+                    for (var navLink of document.querySelectorAll('nav > a')) { // try nav links if no button
+                        if (navLink.textContent.toLowerCase().includes(buttonIdentifier.toLowerCase())) {
+                            return navLink; }}})();
+            if (buttonAction === 'click') { button.click(); } else { return button; }
+        };
+    }
+
     // Create alias functions
-    var aliases = [ // synonyms within function names
-        ['chat', 'conversation', 'convo'],
-        ['send', 'submit']
-    ];
-    var reAliases = new RegExp(aliases.flat().join('|'), 'gi');
     for (var prop in chatgpt) {
         if (typeof chatgpt[prop] === 'function') {
-            for (var match of prop.matchAll(reAliases)) {
-                var originalWord = match[0].toLowerCase();
-                var aliasValues = [].concat(...aliases // flatten into single array w/ match's aliases
-                    .filter(arr => arr.includes(originalWord)) // filter in relevant alias sub-arrays
-                    .map(arr => arr.filter(word => word !== originalWord))); // filter out match word
-                var matchCase = /^[A-Z][a-z]+$/.test(match[0]) ? 'title'
-                    : /^[a-z]+$/.test(match[0]) ? 'lower'
-                    : /^[A-Z]+$/.test(match[0]) ? 'upper' : 'mixed';
-                for (var alias of aliasValues) { // make alias functions
-                    alias = ( // preserve camel case for new name
-                        matchCase === 'title' ? alias.charAt(0).toUpperCase() + alias.slice(1).toLowerCase()
-                        : matchCase === 'upper' ? alias.toUpperCase()
-                        : matchCase === 'lower' ? alias.toLowerCase() : alias);
-                    var aliasProp = prop.replace(match[0], alias); // name new function
-                    chatgpt[aliasProp] = chatgpt[prop]; // reference original function
-                }
-            }
+
+            // Create new function for each alias
+            for (var subAliases of functionAliases) {
+                if (subAliases.includes(prop)) {
+                    for (var alias of subAliases) {
+                        if (alias !== prop) { // don't alias og function
+                            chatgpt[alias] = chatgpt[prop]; // make new function, reference og one
+            }}}}
+
+            do { // create new function per synonym per word per function
+                var newFunctionsCreated = false;
+                for (var funcName in chatgpt) {
+                    if (typeof chatgpt[funcName] === 'function') {
+                        var funcWords = funcName.split(/(?=[A-Zs])/); // split function name into constituent words
+                        for (var funcWord of funcWords) {
+                            var synonymValues = [].concat(...synonyms // flatten into single array w/ word's synonyms
+                                                          .filter(arr => arr.includes(funcWord.toLowerCase())) // filter in relevant synonym sub-arrays
+                                                          .map(arr => arr.filter(synonym => synonym !== funcWord.toLowerCase()))); // filter out matching word
+                            for (var synonym of synonymValues) { // create function per synonym
+                                var newWords = [...funcWords]; // shallow copy funcWords
+                                newWords[newWords.indexOf(funcWord)] = synonym; // replace funcWord w/ synonym
+                                var newFuncName = newWords.map((newWord, index) => // transform new words to create new name
+                                                               index === 0 || newWord === 's' ? newWord : newWord.charAt(0).toUpperCase() + newWord.slice(1) // case each word to form camel case
+                                                              ).join(''); // concatenate transformed words
+                                if (!chatgpt[newFuncName]) { // don't alias existing functions
+                                    chatgpt[newFuncName] = chatgpt[funcName]; // make new function, reference og one
+                                    newFunctionsCreated = true;
+            }}}}}} while (newFunctionsCreated); // loop over new functions to encompass all variations
         }
     }
 
+    // Export chatgpt object
     try { window.chatgpt = chatgpt; } catch (error) { /* for Greasemonkey */ }
     try { module.exports = chatgpt; } catch (error) { /* for CommonJS */ }
 
-    // Use the added functions to get the elements
-    var sendButton = chatgpt.getSendButton();
-    var textarea = chatgpt.getTextarea();
-    var regenerateButton = chatgpt.getRegenerateButton();
-    var stopGeneratingButton = chatgpt.getStopGeneratingButton();
-    var newChatButton = chatgpt.getNewChatButton();
-
     // Check the status
-    setInterval(function() {
-        chatgpt.updateStatus();
-    }, 1000);
-
-    sendButton && sendButton.addEventListener('click', function() {
-        chatgpt.updateStatus();
-    });
+    setInterval(function() { chatgpt.updateStatus(); }, 1000);
+    var sendButton = document.querySelector('form button[class*="bottom"]');
+    sendButton.addEventListener('click', function() { chatgpt.updateStatus(); });
 
     // Listener examples
     chatgpt.eventEmitter.on('onIdle', function() {
@@ -290,11 +411,8 @@ async function initialize() {
         console.log('Chat is generating');
     });
 
-    // Pre-assign IDs to the elements
-    sendButton && (sendButton.id = 'chatgpt-submit-button');
-    textarea && (textarea.id = 'chatgpt-textarea');
-    regenerateButton && (regenerateButton.id = 'chatgpt-regenerate-button');
-    stopGeneratingButton && (stopGeneratingButton.id = 'chatgpt-stop-generating-button');
-    newChatButton && (newChatButton.id = 'chatgpt-new-chat-button');
-    
 })();
+
+// Your code here
+
+chatgpt.printAllFunctions() // logs all functions to console

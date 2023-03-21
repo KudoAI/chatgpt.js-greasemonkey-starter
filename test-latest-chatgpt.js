@@ -2,7 +2,7 @@
 // @name         chatgpt.js test (es5)
 // @namespace    https://chatgptjs.org
 // @version      2023.03.20
-// @description  A userscript template to test latest chatgpt.js compatibility, uncached w/o using @require
+// @description  A template to test latest chatgpt.js compatibility (uncached by avoiding @require)
 // @author       chatgpt.js
 // @match        https://chat.openai.com/*
 // @icon         https://raw.githubusercontent.com/adamlui/userscripts/master/chatgpt/media/icons/openai-favicon64.png
@@ -12,7 +12,7 @@
 
 // Import latest chatgpt.js using ES5
 var xhr = new XMLHttpRequest()
-xhr.open('GET', 'https://code.chatgptjs.org/chatgpt-latest.min.js')
+xhr.open('GET', 'https://code.chatgptjs.org/chatgpt-latest.js')
 xhr.onload = function() {
     if (xhr.status === 200) {
         var chatgptJS = document.createElement('script')

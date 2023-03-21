@@ -10,7 +10,7 @@
 // @license      MIT
 // ==/UserScript==
 
-// Import latest chatgpt.js using ES5
+// Import latest chatgpt.js (via ES5/XHR to avoid CORS)
 var xhr = new XMLHttpRequest()
 xhr.open('GET', 'https://code.chatgptjs.org/chatgpt-latest.js')
 xhr.onload = function() {

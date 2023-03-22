@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         chatgpt.js test
 // @namespace    https://chatgptjs.org
-// @version      2023.03.20
+// @version      2023.03.22
 // @description  A template to test latest chatgpt.js compatibility (uncached by avoiding @require)
 // @author       chatgpt.js
 // @match        https://chat.openai.com/*
@@ -11,20 +11,19 @@
 // ==/UserScript==
 
 // Import latest chatgpt.js (via ES5/XHR to avoid CORS)
-var xhr = new XMLHttpRequest()
-xhr.open('GET', 'https://code.chatgptjs.org/chatgpt-latest.js')
+var libURL = 'https://code.chatgptjs.org/chatgpt-latest.js?cache=' + new Date().getTime()
+var xhr = new XMLHttpRequest() ; xhr.open('GET', libURL)
 xhr.onload = function() {
     if (xhr.status === 200) {
         var chatgptJS = document.createElement('script')
         chatgptJS.textContent = xhr.responseText
         document.head.appendChild(chatgptJS)
-        yourCode() // run your code
+        chatgpt.printAllFunctions() ; yourCode()
     }
 }
 xhr.send()
 
 // Insert your code
 function yourCode() {
-    chatgpt.printAllFunctions(); // test log all functions available in console
     // your code here
 }

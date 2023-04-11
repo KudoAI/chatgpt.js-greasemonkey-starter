@@ -1,6 +1,5 @@
 // ==UserScript==
 // @name         chatgpt.js test
-// @namespace    https://chatgptjs.org
 // @version      2023.03.22
 // @description  A template to test latest chatgpt.js compatibility (uncached by avoiding @require)
 // @author       chatgpt.js

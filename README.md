@@ -1,3 +1,3 @@
-# chatgptjs-greasemonkey-test
+# 🙈 chatgpt.js Greasemonkey Starter
 
-A template for Greasemonkey userscripts to test the latest chatgpt.js w/o using `// @require` (which caches resources)
+A Greasemonkey userscript template to start using [chatgpt.js](https://github.com/kudoai/chatgpt.js) right away!

@@ -1,12 +1,13 @@
 {
   "devDependencies": {
     "eslint": "^8.56.0",
+    "eslint-plugin-yml": "^1.12.2",
     "husky": "^9.0.10"
   },
   "scripts": {
-    "lint": "eslint . --cache",
-    "lint:all": "eslint .",
-    "lint:fix": "eslint . --fix --cache",
-    "lint:fix-all": "eslint . --fix"
+    "lint": "eslint . --ext js,yml --cache",
+    "lint:all": "eslint . --ext js,yml",
+    "lint:fix": "eslint . --ext js,yml --fix --cache",
+    "lint:fix-all": "eslint . --ext js,yml --fix"
   }
 }

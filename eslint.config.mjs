@@ -1,6 +1,6 @@
-import js from '@eslint/js';
-import globals from 'globals';
-import json from 'eslint-plugin-json';
+import js from '@eslint/js'
+import globals from 'globals'
+import json from 'eslint-plugin-json'
 
 export default [
     js.configs.recommended,
@@ -8,7 +8,6 @@ export default [
     {
         rules: {
             'indent': 'off', 'no-unexpected-multiline': 'off', 'key-spacing': 'off', // allow whitespace anywhere
-            'semi': ['error', 'always'], // enforce semicolons at end of statement
             'quotes': ['error', 'single'], // enforce single quotes for string literals
             'comma-dangle': ['error', 'never'], // enforce no trailing commas in arrays or objects
             'no-async-promise-executor': 'off', // allow promise executor functions to be async (to accomodate await lines)
@@ -25,4 +24,4 @@ export default [
     },
     { files: ['**/*.mjs', '**/lib*/*.js'], languageOptions: { sourceType: 'module' }},
     { files: ['**/*.json'], ...json.configs['recommended'] }
-];
+]

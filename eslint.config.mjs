@@ -47,5 +47,5 @@ export default [
         }
     },
     { files: ['**/*.mjs', '**/lib*/*.js'], languageOptions: { sourceType: 'module' }},
-    { files: ['**/*.yaml, **/*.yml'], ...yml.configs['flat/standard'][1] }
+    { files: ['**/*.{yaml,yml}'], ...yml.configs['flat/standard'][1] }
 ]

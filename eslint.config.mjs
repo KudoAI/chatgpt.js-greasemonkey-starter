@@ -46,6 +46,6 @@ export default [
             'markdown/no-missing-label-refs': 'off' // allow missing label references
         }
     },
-    { files: ['**/*.mjs', '**/lib*/*.js'], languageOptions: { sourceType: 'module' }},
+    { files: ['**/*.mjs'], languageOptions: { sourceType: 'module' }},
     { files: ['**/*.{yaml,yml}'], ...yml.configs['flat/standard'][1] }
 ]

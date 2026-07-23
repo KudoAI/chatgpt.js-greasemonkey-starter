@@ -12,7 +12,7 @@
 // @grant         GM_getValue
 // @grant         GM_setValue
 // @noframes
-// @homepageURL   https://github.com/KudoAI/chatgpt.js-greasemonkey-starter
+// @homepageURL   https://github.com/KudoAI/chatgpt.js-greasemonkey-starter/#readme
 // @supportURL    https://github.com/KudoAI/chatgpt.js-greasemonkey-starter/issues
 // ==/UserScript==
 
